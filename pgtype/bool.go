@@ -110,6 +110,12 @@ func (BoolCodec) PlanEncode(m *Map, oid uint32, format int16, value any) EncodeP
 	switch format {
 	case BinaryFormatCode:
 		switch value.(type) {
+		case int8:
+			return encodePlanBoolCodecBinaryInt8{}
+		case int16:
+			return encodePlanBoolCodecBinaryInt16{}
+		case int32:
+			return encodePlanBoolCodecBinaryInt32{}
 		case bool:
 			return encodePlanBoolCodecBinaryBool{}
 		case BoolValuer:
@@ -125,6 +131,54 @@ func (BoolCodec) PlanEncode(m *Map, oid uint32, format int16, value any) EncodeP
 	}
 
 	return nil
+}
+
+// encodePlanBoolCodecBinaryInt8 support convert 0 to false, otherwise true
+type encodePlanBoolCodecBinaryInt8 struct {
+}
+
+func (encodePlanBoolCodecBinaryInt8) Encode(value any, buf []byte) (newBuf []byte, err error) {
+	v := value.(int8)
+
+	if v == 0 {
+		buf = append(buf, 0)
+	} else {
+		buf = append(buf, 1)
+	}
+
+	return buf, nil
+}
+
+// encodePlanBoolCodecBinaryInt16 support convert 0 to false, otherwise true
+type encodePlanBoolCodecBinaryInt16 struct {
+}
+
+func (encodePlanBoolCodecBinaryInt16) Encode(value any, buf []byte) (newBuf []byte, err error) {
+	v := value.(int16)
+
+	if v == 0 {
+		buf = append(buf, 0)
+	} else {
+		buf = append(buf, 1)
+	}
+
+	return buf, nil
+}
+
+// encodePlanBoolCodecBinaryInt32 support convert 0 to false, otherwise true
+type encodePlanBoolCodecBinaryInt32 struct {
+}
+
+func (encodePlanBoolCodecBinaryInt32) Encode(value any, buf []byte) (newBuf []byte, err error) {
+	v := value.(int32)
+
+	if v == 0 {
+		buf = append(buf, 0)
+	} else {
+		buf = append(buf, 1)
+	}
+
+	return buf, nil
 }
 
 type encodePlanBoolCodecBinaryBool struct{}
