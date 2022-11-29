@@ -70,10 +70,6 @@ func (BitsCodec) PreferredFormat() int16 {
 }
 
 func (BitsCodec) PlanEncode(m *Map, oid uint32, format int16, value any) EncodePlan {
-	if _, ok := value.(BitsValuer); !ok {
-		return nil
-	}
-
 	switch format {
 	case BinaryFormatCode:
 		switch value.(type) {
