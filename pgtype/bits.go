@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding/binary"
 	"fmt"
-
 	"github.com/jackc/pgx/v5/internal/pgio"
 )
 
@@ -77,12 +76,33 @@ func (BitsCodec) PlanEncode(m *Map, oid uint32, format int16, value any) EncodeP
 
 	switch format {
 	case BinaryFormatCode:
-		return encodePlanBitsCodecBinary{}
+		switch value.(type) {
+		case int32:
+			return encodePlanBitsCodecBinaryInt32{}
+		case int:
+			return encodePlanBitsCodecBinaryInt{}
+		default:
+			return encodePlanBitsCodecBinary{}
+		}
 	case TextFormatCode:
 		return encodePlanBitsCodecText{}
 	}
 
 	return nil
+}
+
+type encodePlanBitsCodecBinaryInt struct{}
+
+func (encodePlanBitsCodecBinaryInt) Encode(value any, buf []byte) (newBuf []byte, err error) {
+	v := value.(int)
+	return pgio.AppendInt32(buf, int32(v)), nil
+}
+
+type encodePlanBitsCodecBinaryInt32 struct{}
+
+func (encodePlanBitsCodecBinaryInt32) Encode(value any, buf []byte) (newBuf []byte, err error) {
+	v := value.(int32)
+	return pgio.AppendInt32(buf, v), nil
 }
 
 type encodePlanBitsCodecBinary struct{}
