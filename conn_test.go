@@ -17,20 +17,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestQueryLocal(t *testing.T) {
-	ctx := context.Background()
-	connString := ""
-	conn, err := pgx.Connect(ctx, connString)
-	require.Nil(t, err)
-	defer closeConn(t, conn)
-	row := conn.QueryRow(ctx, "select * from cooperator", nil)
-	if err != nil {
-		t.Fatalf("QueryRow Scan unexpectedly failed: %v", err)
-	} else {
-		row.Scan()
-	}
-}
-
 func TestCrateDBConnect(t *testing.T) {
 	t.Parallel()
 

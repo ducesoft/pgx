@@ -147,6 +147,8 @@ func (BitsCodec) PlanScan(m *Map, oid uint32, format int16, target any) ScanPlan
 	switch format {
 	case BinaryFormatCode:
 		switch target.(type) {
+		case *int32:
+			return scanPlanBinaryBitsToInt32Scanner{}
 		case BitsScanner:
 			return scanPlanBinaryBitsToBitsScanner{}
 		}
@@ -175,6 +177,28 @@ func (c BitsCodec) DecodeValue(m *Map, oid uint32, format int16, src []byte) (an
 		return nil, err
 	}
 	return box, nil
+}
+
+type scanPlanBinaryBitsToInt32Scanner struct{}
+
+func (scanPlanBinaryBitsToInt32Scanner) Scan(src []byte, dst any) error {
+	p, ok := dst.(*int32)
+	if !ok {
+		return ErrScanTargetTypeChanged
+	}
+	// front 4, represent len, such 1 => 0,0,0,1,128
+	buf := make([]byte, 4)
+	binary.LittleEndian.PutUint32(buf, uint32(src[4]))
+	i := 0
+	b := uint32(src[4])
+	for i < 8 {
+		var c uint32 = 1 >> (8 - 1)
+		if c&b == c {
+			*p = *p | (1 >> i)
+		}
+		i++
+	}
+	return nil
 }
 
 type scanPlanBinaryBitsToBitsScanner struct{}
