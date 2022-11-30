@@ -256,6 +256,8 @@ func (BoolCodec) PlanScan(m *Map, oid uint32, format int16, target any) ScanPlan
 	switch format {
 	case BinaryFormatCode:
 		switch target.(type) {
+		case *int32:
+			return scanPlanBinaryBoolToInt32{}
 		case *bool:
 			return scanPlanBinaryBoolToBool{}
 		case BoolScanner:
@@ -288,6 +290,27 @@ func (c BoolCodec) DecodeValue(m *Map, oid uint32, format int16, src []byte) (an
 		return nil, err
 	}
 	return b, nil
+}
+
+type scanPlanBinaryBoolToInt32 struct{}
+
+func (scanPlanBinaryBoolToInt32) Scan(src []byte, dst any) error {
+	if src == nil {
+		return fmt.Errorf("cannot scan NULL into %T", dst)
+	}
+
+	if len(src) != 1 {
+		return fmt.Errorf("invalid length for bool: %v", len(src))
+	}
+
+	p, ok := (dst).(*int32)
+	if !ok {
+		return ErrScanTargetTypeChanged
+	}
+
+	*p = int32(src[0])
+
+	return nil
 }
 
 type scanPlanBinaryBoolToBool struct{}
